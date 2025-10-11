@@ -1,3 +1,5 @@
+use anchor_lang::solana_program::native_token::LAMPORTS_PER_SOL;
+
 use crate::error::DBCErrorCode;
 
 pub fn get_init_param(
@@ -81,6 +83,118 @@ pub fn get_init_param(
     let y0 = u64::try_from(y0_u128).or(Err(DBCErrorCode::Overflow))?;
 
     Ok((x0, y0, total_sell))
+}
+
+pub fn compute_s_in(
+    v_token_reserve: u64,
+    v_sol_reserve: u64,
+    t_out: u64,
+) -> Result<u64, DBCErrorCode> {
+    let v_token_128 = u128::try_from(v_token_reserve).or(Err(DBCErrorCode::Overflow))?;
+
+    let scale_u128 = u128::try_from(1_000_000).or(Err(DBCErrorCode::Overflow))?;
+
+    let t_out_128 = u128::try_from(t_out).or(Err(DBCErrorCode::Overflow))?;
+
+    if t_out_128 > v_token_128 {
+        return Err(DBCErrorCode::InvalidCalculation.into());
+    }
+
+    let denominator: u128 = v_token_128
+        .checked_sub(t_out_128)
+        .ok_or(DBCErrorCode::Overflow)?;
+
+    if denominator == 0 {
+        return Err(DBCErrorCode::InvalidCalculation.into());
+    }
+
+    let q: u128 = u128::try_from(v_token_reserve)
+        .or(Err(DBCErrorCode::Overflow))?
+        .checked_mul(u128::try_from(v_sol_reserve).or(Err(DBCErrorCode::Overflow))?)
+        .ok_or(DBCErrorCode::Overflow)?;
+
+    let constant_product_u128 = u128::try_from(q).or(Err(DBCErrorCode::Overflow))?;
+
+    let lamports_per_sol_u128: u128 =
+        u128::try_from(LAMPORTS_PER_SOL).or(Err(DBCErrorCode::Overflow))?;
+
+    let multiplicative_factor: u128 = lamports_per_sol_u128
+        .checked_mul(scale_u128)
+        .ok_or(DBCErrorCode::Overflow)?;
+
+    let numerator: u128 = constant_product_u128
+        .checked_mul(multiplicative_factor)
+        .ok_or(DBCErrorCode::Overflow)?;
+
+    let part_1: u128 = numerator
+        .checked_div(denominator)
+        .ok_or(DBCErrorCode::InvalidCalculation)?;
+
+    let part_2 = u128::try_from(v_sol_reserve).or(Err(DBCErrorCode::Overflow))?;
+
+    let s_in: u128 = part_1.checked_sub(part_2).ok_or(DBCErrorCode::Underflow)?;
+
+    let s_in_u64 = u64::try_from(s_in).or(Err(DBCErrorCode::Overflow))?;
+
+    Ok(s_in_u64)
+}
+
+pub fn compute_s_out(
+    v_token_reserve: u64,
+    v_sol_reserve: u64,
+    t_in: u64,
+) -> Result<u64, DBCErrorCode> {
+    let v_token_128 = u128::try_from(v_token_reserve).or(Err(DBCErrorCode::Overflow))?;
+
+    let t_in_128 = u128::try_from(t_in).or(Err(DBCErrorCode::Overflow))?;
+
+    if t_in_128 > v_token_128 {
+        return Err(DBCErrorCode::InvalidCalculation.into());
+    }
+
+    let denominator: u128 = v_token_128
+        .checked_add(t_in_128)
+        .ok_or(DBCErrorCode::Overflow)?;
+
+    if denominator == 0 {
+        return Err(DBCErrorCode::InvalidCalculation.into());
+    }
+
+    let q: u128 = u128::try_from(v_token_reserve)
+        .or(Err(DBCErrorCode::Overflow))?
+        .checked_mul(u128::try_from(v_sol_reserve).or(Err(DBCErrorCode::Overflow))?)
+        .ok_or(DBCErrorCode::Overflow)?;
+
+    let constant_product_u128 = u128::try_from(q).or(Err(DBCErrorCode::Overflow))?;
+
+    let lamports_per_sol_u128: u128 =
+        u128::try_from(LAMPORTS_PER_SOL).or(Err(DBCErrorCode::Overflow))?;
+
+    let scale_u128 = u128::try_from(1_000_000).or(Err(DBCErrorCode::Overflow))?;
+
+    let multiplicative_factor: u128 = lamports_per_sol_u128
+        .checked_mul(scale_u128)
+        .ok_or(DBCErrorCode::Overflow)?;
+
+    let numerator: u128 = constant_product_u128
+        .checked_mul(multiplicative_factor)
+        .ok_or(DBCErrorCode::Overflow)?;
+
+    let part_1 = u128::try_from(v_sol_reserve).or(Err(DBCErrorCode::Overflow))?;
+
+    let part_2: u128 = numerator
+        .checked_div(denominator)
+        .ok_or(DBCErrorCode::InvalidCalculation)?;
+
+    if part_2 > part_1 {
+        return Err(DBCErrorCode::Overflow.into());
+    }
+
+    let s_out: u128 = part_1.checked_sub(part_2).ok_or(DBCErrorCode::Underflow)?;
+
+    let s_out_u64 = u64::try_from(s_out).or(Err(DBCErrorCode::Overflow))?;
+
+    Ok(s_out_u64)
 }
 
 #[cfg(test)]
