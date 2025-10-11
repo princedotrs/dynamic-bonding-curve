@@ -16,6 +16,7 @@ pub enum DBCErrorCode {
 
     #[msg("Insufficient SOL in bonding curve reserve")]
     InsufficientSol,
+    
     #[msg("Overflow")]
     Overflow,
 

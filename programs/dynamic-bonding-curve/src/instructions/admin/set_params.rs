@@ -25,11 +25,13 @@ impl<'info> SetParams<'info> {
         admin: &Pubkey,
         fee_recipient: &Pubkey,
         fee_basis_points: u64,
+        new_supply: u64,
     ) -> Result<()> {
         self.global.authority = *admin;
         self.global.fee_recipient = *fee_recipient;
         self.global.fee_basis_points = fee_basis_points;
-        
+        self.global.supply = new_supply;
+
         Ok(())
     }
 }

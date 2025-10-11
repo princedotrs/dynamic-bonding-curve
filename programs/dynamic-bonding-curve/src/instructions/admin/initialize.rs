@@ -30,6 +30,7 @@ impl<'info> Initialize<'info> {
             authority: self.admin.key(),
             fee_recipient: self.admin.key(),
             fee_basis_points: 100,
+            supply: supply,
             bump: bump.global,
         });
 

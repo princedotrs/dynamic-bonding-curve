@@ -8,5 +8,6 @@ pub struct Global {
     pub authority: Pubkey,
     pub fee_recipient: Pubkey,
     pub fee_basis_points: u64,
+    pub supply: u64,
     pub bump: u8,
 }
