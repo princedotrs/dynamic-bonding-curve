@@ -20,4 +20,4 @@ idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 [dependencies]
 anchor-lang = "0.31.1"
 anchor-spl = {version = "0.31.1", features = ["metadata"]}
-
+spl-memo = "6.0.0"

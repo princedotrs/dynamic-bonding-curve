@@ -1,18 +1,17 @@
-
-use anchor_lang::{prelude::*,
-    system_program::{transfer, Transfer}
+use anchor_lang::{
+    prelude::*,
+    system_program::{transfer, Transfer},
 };
 
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token::{transfer_checked, Mint, Token, TokenAccount, TransferChecked}
+    token::{transfer_checked, Mint, Token, TokenAccount, TransferChecked},
 };
 
 use crate::{compute_s_out, error::DBCErrorCode, seeds, BondingCurve, Global};
 
-
 #[derive(Accounts)]
-pub struct Sell <'info> {
+pub struct Sell<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
 
@@ -56,7 +55,7 @@ pub struct Sell <'info> {
         mut,
         token::mint = mint,
         token::authority = user,
-        token::token_program = token_program    
+        token::token_program = token_program
     )]
     pub user_ata: Account<'info, TokenAccount>,
 
@@ -67,46 +66,56 @@ pub struct Sell <'info> {
     pub system_program: Program<'info, System>,
 }
 
-impl <'info> Sell<'info> {
+impl<'info> Sell<'info> {
     pub fn sell_tokens(&mut self, amount: u64, min_sol_output: u64) -> Result<()> {
-
         require!(amount > 0 && amount <= u64::MAX, DBCErrorCode::Underflow);
 
-        require!(min_sol_output > 0 , DBCErrorCode::Underflow);
+        require!(min_sol_output > 0, DBCErrorCode::Underflow);
 
-        require!(min_sol_output <= self.bonding_curve.real_sol_reserve, DBCErrorCode::InsufficientSol);
+        require!(
+            min_sol_output <= self.bonding_curve.real_sol_reserve,
+            DBCErrorCode::InsufficientSol
+        );
 
         let t_current = self.bonding_curve.real_token_reserve;
-        let t_new: u64 = t_current.checked_add(amount).ok_or(DBCErrorCode::Overflow)?;
+        let t_new: u64 = t_current
+            .checked_add(amount)
+            .ok_or(DBCErrorCode::Overflow)?;
 
         if t_new > self.global.supply {
             return Err(DBCErrorCode::Overflow)?;
         }
 
-        let s_out: u64 = compute_s_out(self.bonding_curve.virtual_token_reserve, self.bonding_curve.virtual_sol_reserve, amount)?;
+        let s_out: u64 = compute_s_out(
+            self.bonding_curve.virtual_token_reserve,
+            self.bonding_curve.virtual_sol_reserve,
+            amount,
+        )?;
 
         let fee_amount = s_out
             .checked_mul(self.global.fee_basis_points)
             .ok_or(DBCErrorCode::Overflow)?
             .checked_div(10000_u64)
             .ok_or(DBCErrorCode::Overflow)?;
-        
-        if s_out.checked_sub(fee_amount).ok_or(DBCErrorCode::Underflow)? < min_sol_output {
+
+        if s_out
+            .checked_sub(fee_amount)
+            .ok_or(DBCErrorCode::Underflow)?
+            < min_sol_output
+        {
             return Err(DBCErrorCode::TooLittleSolReceived.into());
         }
 
         self.send_token(amount)?;
 
         self.send_sol(s_out, fee_amount)?;
-        
+
         self.update_bonding_curve(s_out, amount)?;
-        
+
         Ok(())
     }
 
-    pub fn send_sol (&mut self, sol_amount: u64, platform_fee: u64) -> Result<()> {
-
-
+    pub fn send_sol(&mut self, sol_amount: u64, platform_fee: u64) -> Result<()> {
         let cpi_program: AccountInfo<'_> = self.system_program.to_account_info();
 
         let cpi_accounts = Transfer {
@@ -118,13 +127,18 @@ impl <'info> Sell<'info> {
             seeds::CURVE_VAULT,
             &self.mint.to_account_info().key.as_ref(),
             &[self.bonding_curve.vault_bump],
-        ];  
+        ];
 
         let signer_seeds = &[&seeds[..]];
 
         let ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
 
-        transfer(ctx, sol_amount.checked_sub(platform_fee).ok_or(DBCErrorCode::Underflow)?)?;
+        transfer(
+            ctx,
+            sol_amount
+                .checked_sub(platform_fee)
+                .ok_or(DBCErrorCode::Underflow)?,
+        )?;
 
         let cpi_program: AccountInfo<'_> = self.system_program.to_account_info();
 
@@ -133,13 +147,12 @@ impl <'info> Sell<'info> {
             to: self.fee_recipient.to_account_info(),
         };
 
-        let ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts,signer_seeds);
+        let ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
 
         transfer(ctx, platform_fee)
-
     }
 
-    pub fn send_token (&mut self, token_amount: u64) -> Result<()> {
+    pub fn send_token(&mut self, token_amount: u64) -> Result<()> {
         let cpi_program = self.token_program.to_account_info();
 
         let cpi_account = TransferChecked {
@@ -152,21 +165,35 @@ impl <'info> Sell<'info> {
         let ctx = CpiContext::new(cpi_program, cpi_account);
 
         transfer_checked(ctx, token_amount, 6)
-
     }
 
     pub fn update_bonding_curve(&mut self, s_out: u64, amount: u64) -> Result<()> {
-        
         // update the v reserves
 
-        self.bonding_curve.virtual_token_reserve = self.bonding_curve.virtual_token_reserve.checked_add(amount).ok_or(DBCErrorCode::Underflow)?;
-        self.bonding_curve.virtual_sol_reserve = self.bonding_curve.virtual_sol_reserve.checked_sub(s_out).ok_or(DBCErrorCode::Underflow)?;
+        self.bonding_curve.virtual_token_reserve = self
+            .bonding_curve
+            .virtual_token_reserve
+            .checked_add(amount)
+            .ok_or(DBCErrorCode::Underflow)?;
+        self.bonding_curve.virtual_sol_reserve = self
+            .bonding_curve
+            .virtual_sol_reserve
+            .checked_sub(s_out)
+            .ok_or(DBCErrorCode::Underflow)?;
 
         // update the real reserves
 
-        self.bonding_curve.real_token_reserve = self.bonding_curve.real_token_reserve.checked_add(amount).ok_or(DBCErrorCode::Underflow)?;
-        self.bonding_curve.real_sol_reserve = self.bonding_curve.real_sol_reserve.checked_sub(s_out).ok_or(DBCErrorCode::Overflow)?;
-        
+        self.bonding_curve.real_token_reserve = self
+            .bonding_curve
+            .real_token_reserve
+            .checked_add(amount)
+            .ok_or(DBCErrorCode::Underflow)?;
+        self.bonding_curve.real_sol_reserve = self
+            .bonding_curve
+            .real_sol_reserve
+            .checked_sub(s_out)
+            .ok_or(DBCErrorCode::Overflow)?;
+
         Ok(())
     }
 }

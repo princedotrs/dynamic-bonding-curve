@@ -16,12 +16,14 @@ use anchor_spl::{
     token::{self, Mint, Token, TokenAccount},
 };
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct TokenArgs {
     pub name: String,
     pub symbol: String,
     pub uri: String,
 }
 
+#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub struct DbcCurveArgs {
     total_fund_raising: u64,
     total_sell: u64,
@@ -95,7 +97,7 @@ impl<'info> Create<'info> {
         // Create metadata
 
         require!(
-            dbc_curve_args.total_sell <= supply
+            dbc_curve_args.total_sell <= SUPPLY
                 && dbc_curve_args
                     .total_sell
                     .checked_add(dbc_curve_args.total_locked_amount)
