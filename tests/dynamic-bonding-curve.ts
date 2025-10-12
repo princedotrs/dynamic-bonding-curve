@@ -24,25 +24,25 @@ describe("dynamic-bonding-curve", () => {
     );
   });
 
-  // it.skip("Admin: set_patams!", async () => {
-  //   const admin = anchor.web3.Keypair.generate();
-  //   const feeRecipient = anchor.web3.Keypair.generate();
-  //   const feeBasisPoint = new anchor.BN(100);
-  //   const newSupply = new anchor.BN(1_000_000_000_000);
+  it.skip("Admin: set_patams!", async () => {
+    const admin = anchor.web3.Keypair.generate();
+    const feeRecipient = anchor.web3.Keypair.generate();
+    const feeBasisPoint = new anchor.BN(100);
+    const newSupply = new anchor.BN(1_000_000_000_000);
 
-  //   const tx = await program.methods
-  //     .setParams(
-  //       admin.publicKey,
-  //       feeRecipient.publicKey,
-  //       feeBasisPoint,
-  //       newSupply
-  //     )
-  //     .signers([provider.wallet.payer])
-  //     .rpc();
-  //   console.log(
-  //     `Set params tx: https://explorer.solana.com/tx/${tx}?cluster=custom`
-  //   );
-  // });
+    const tx = await program.methods
+      .setParams(
+        admin.publicKey,
+        feeRecipient.publicKey,
+        feeBasisPoint,
+        newSupply
+      )
+      .signers([provider.wallet.payer])
+      .rpc();
+    console.log(
+      `Set params tx: https://explorer.solana.com/tx/${tx}?cluster=custom`
+    );
+  });
 
   it("User: create!", async()=>{
     const name = "DynamicBondingCurve";

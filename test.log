@@ -1,0 +1,57 @@
+
+Found a 'test' script in the Anchor.toml. Running it as a test suite!
+
+Running test suite: "/Users/prince/Project/prince981620/dynamic-bonding-curve/Anchor.toml"
+
+yarn run v1.22.22
+$ /Users/prince/Project/prince981620/dynamic-bonding-curve/node_modules/.bin/ts-mocha -p ./tsconfig.json -t 1000000 'tests/**/*.ts'
+(node:83048) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/prince/Project/prince981620/dynamic-bonding-curve/tests/dynamic-bonding-curve.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/prince/Project/prince981620/dynamic-bonding-curve/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+  dynamic-bonding-curve
+Transfer tx: https://explorer.solana.com/tx/5vnsiAmsCvvrpT1UFTWvLdZCBWAdtwvxLDLjhBapApmSpXNii6DkqYqjhbfFo6C5JvVSG7kY7iFP17Lwu7W6TGXT?cluster=custom
+    ✔ Admin: initialize! (2619ms)
+Create tx: https://explorer.solana.com/tx/3pUzHCmxsECNsC75uY8bqWZ9EyJCtmZNBcVZio2o3An54E6Y2ZQh98GA9VFXJdSBapqTY6KPyDUUcM7eiGBFRivf?cluster=custom
+    ✔ User: create! (2791ms)
+    1) User: buy!
+    2) User: sell!
+
+
+  2 passing (9s)
+  2 failing
+
+  1) dynamic-bonding-curve
+       User: buy!:
+     Simulation failed. 
+Message: Transaction simulation failed: Transaction results in an account (3) with insufficient funds for rent. 
+Logs: 
+[
+  "Program 11111111111111111111111111111111 invoke [2]",
+  "Program 11111111111111111111111111111111 success",
+  "Program 11111111111111111111111111111111 invoke [2]",
+  "Program 11111111111111111111111111111111 success",
+  "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]",
+  "Program log: Instruction: TransferChecked",
+  "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 6147 of 179381 compute units",
+  "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA success",
+  "Program BnHQoRBC1kedRoiFfrXvxzRDUPM64R7wxaPT2PsDndKw consumed 28057 of 200000 compute units",
+  "Program BnHQoRBC1kedRoiFfrXvxzRDUPM64R7wxaPT2PsDndKw success"
+]. 
+Catch the `SendTransactionError` and call `getLogs()` on it for full details.
+  
+
+  2) dynamic-bonding-curve
+       User: sell!:
+     Error: AnchorError thrown in programs/dynamic-bonding-curve/src/instructions/user/sell.rs:90. Error Code: InsufficientSol. Error Number: 6004. Error Message: Insufficient SOL in bonding curve reserve.
+      at AnchorError.parse (node_modules/@coral-xyz/anchor/src/error.ts:152:14)
+      at translateError (node_modules/@coral-xyz/anchor/src/error.ts:277:35)
+      at MethodsBuilder.rpc [as _rpcFn] (node_modules/@coral-xyz/anchor/src/program/namespace/rpc.ts:35:29)
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+
+
+error Command failed with exit code 2.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.
