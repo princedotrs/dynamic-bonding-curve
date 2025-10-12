@@ -1,4 +1,5 @@
 use crate::constants::*;
+use crate::error::DBCErrorCode;
 use crate::state::Global;
 use anchor_lang::prelude::*;
 
@@ -7,6 +8,8 @@ pub struct SetParams<'info> {
     #[account(
         seeds = [seeds::GLOBAL],
         bump = global.bump,
+        has_one = authority,
+        constraint = matches!(global.paused, false) @ DBCErrorCode::ContractPaused
     )]
     pub global: Account<'info, Global>,
 
@@ -14,7 +17,7 @@ pub struct SetParams<'info> {
         mut,
         address = ADMIN
     )]
-    pub admin: Signer<'info>,
+    pub authority: Signer<'info>,
 
     pub system_program: Program<'info, System>,
 }

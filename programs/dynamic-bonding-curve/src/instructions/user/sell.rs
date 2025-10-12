@@ -72,11 +72,6 @@ impl<'info> Sell<'info> {
 
         require!(min_sol_output > 0, DBCErrorCode::Underflow);
 
-        require!(
-            min_sol_output <= self.bonding_curve.real_sol_reserve,
-            DBCErrorCode::InsufficientSol
-        );
-
         let t_current = self.bonding_curve.real_token_reserve;
         let t_new: u64 = t_current
             .checked_add(amount)
@@ -91,6 +86,11 @@ impl<'info> Sell<'info> {
             self.bonding_curve.virtual_sol_reserve,
             amount,
         )?;
+
+        require!(
+            s_out <= self.bonding_curve.real_sol_reserve,
+            DBCErrorCode::InsufficientSol
+        );
 
         let fee_amount = s_out
             .checked_mul(self.global.fee_basis_points)

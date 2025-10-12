@@ -1,5 +1,3 @@
-use anchor_lang::solana_program::native_token::LAMPORTS_PER_SOL;
-
 use crate::error::DBCErrorCode;
 
 pub fn get_init_param(
@@ -92,8 +90,6 @@ pub fn compute_s_in(
 ) -> Result<u64, DBCErrorCode> {
     let v_token_128 = u128::try_from(v_token_reserve).or(Err(DBCErrorCode::Overflow))?;
 
-    let scale_u128 = u128::try_from(1_000_000).or(Err(DBCErrorCode::Overflow))?;
-
     let t_out_128 = u128::try_from(t_out).or(Err(DBCErrorCode::Overflow))?;
 
     if t_out_128 > v_token_128 {
@@ -108,22 +104,9 @@ pub fn compute_s_in(
         return Err(DBCErrorCode::InvalidCalculation.into());
     }
 
-    let q: u128 = u128::try_from(v_token_reserve)
+    let numerator: u128 = u128::try_from(v_token_reserve)
         .or(Err(DBCErrorCode::Overflow))?
         .checked_mul(u128::try_from(v_sol_reserve).or(Err(DBCErrorCode::Overflow))?)
-        .ok_or(DBCErrorCode::Overflow)?;
-
-    let constant_product_u128 = u128::try_from(q).or(Err(DBCErrorCode::Overflow))?;
-
-    let lamports_per_sol_u128: u128 =
-        u128::try_from(LAMPORTS_PER_SOL).or(Err(DBCErrorCode::Overflow))?;
-
-    let multiplicative_factor: u128 = lamports_per_sol_u128
-        .checked_mul(scale_u128)
-        .ok_or(DBCErrorCode::Overflow)?;
-
-    let numerator: u128 = constant_product_u128
-        .checked_mul(multiplicative_factor)
         .ok_or(DBCErrorCode::Overflow)?;
 
     let part_1: u128 = numerator
@@ -160,24 +143,9 @@ pub fn compute_s_out(
         return Err(DBCErrorCode::InvalidCalculation.into());
     }
 
-    let q: u128 = u128::try_from(v_token_reserve)
+    let numerator: u128 = u128::try_from(v_token_reserve)
         .or(Err(DBCErrorCode::Overflow))?
         .checked_mul(u128::try_from(v_sol_reserve).or(Err(DBCErrorCode::Overflow))?)
-        .ok_or(DBCErrorCode::Overflow)?;
-
-    let constant_product_u128 = u128::try_from(q).or(Err(DBCErrorCode::Overflow))?;
-
-    let lamports_per_sol_u128: u128 =
-        u128::try_from(LAMPORTS_PER_SOL).or(Err(DBCErrorCode::Overflow))?;
-
-    let scale_u128 = u128::try_from(1_000_000).or(Err(DBCErrorCode::Overflow))?;
-
-    let multiplicative_factor: u128 = lamports_per_sol_u128
-        .checked_mul(scale_u128)
-        .ok_or(DBCErrorCode::Overflow)?;
-
-    let numerator: u128 = constant_product_u128
-        .checked_mul(multiplicative_factor)
         .ok_or(DBCErrorCode::Overflow)?;
 
     let part_1 = u128::try_from(v_sol_reserve).or(Err(DBCErrorCode::Overflow))?;
@@ -227,5 +195,27 @@ mod tests {
         );
         assert_eq!(y0, 28_333_333_333, "virtual_quote should be ~28.33 million");
         assert_eq!(d, 800_000_000_000_000, "total_sell should match");
+    }
+
+    #[test]
+    fn test_compute_s_in() {
+        let v_token_reserve = 1066666666666666;
+        let v_sol_reserve = 28333333333;
+        let t_out = 1_000_000_000_000;
+
+        let s_in = compute_s_in(v_token_reserve, v_sol_reserve, t_out)
+            .expect("compute_s_in should succeed");
+        println!("s_in for 1 trillion tokens out: {}", s_in);
+    }
+
+    #[test]
+    fn test_compute_s_out() {
+        let v_token_reserve = 1066666666666666;
+        let v_sol_reserve = 28333333333;
+        let t_out = 1_000_000_000_000;
+
+        let s_in = compute_s_out(v_token_reserve, v_sol_reserve, t_out)
+            .expect("compute_s_in should succeed");
+        println!("s_in for 1 trillion tokens out: {}", s_in);
     }
 }

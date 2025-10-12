@@ -1,6 +1,6 @@
 use crate::state::{BondingCurve, Global};
 use crate::{constants::*, error::DBCErrorCode, get_init_param};
-use anchor_lang::{prelude::*, solana_program::native_token::LAMPORTS_PER_SOL};
+use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
     metadata::{
@@ -94,15 +94,14 @@ impl<'info> Create<'info> {
         bump: u8,
         vault_bump: u8,
     ) -> Result<()> {
-        // Create metadata
-
         require!(
-            dbc_curve_args.total_sell <= SUPPLY
+            dbc_curve_args.total_fund_raising >= 40_000_000_000
+                && dbc_curve_args.total_sell <= SUPPLY
                 && dbc_curve_args
                     .total_sell
                     .checked_add(dbc_curve_args.total_locked_amount)
                     .ok_or(DBCErrorCode::Overflow)?
-                    > self
+                    >= self
                         .global
                         .supply
                         .checked_mul(80)
@@ -184,10 +183,7 @@ impl<'info> Create<'info> {
 
         let (x0, y0, z) = get_init_param(
             self.global.supply,
-            dbc_curve_args
-                .total_fund_raising
-                .checked_div(LAMPORTS_PER_SOL)
-                .ok_or(DBCErrorCode::Underflow)?,
+            dbc_curve_args.total_fund_raising,
             dbc_curve_args.total_sell,
             dbc_curve_args.total_locked_amount,
             dbc_curve_args.migrate_fee,

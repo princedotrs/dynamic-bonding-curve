@@ -103,11 +103,11 @@ impl<'info> Buy<'info> {
 
         self.send_token(t_new)?;
 
+        self.update_bonding_curve(s_in, t_new)?;
+
         if self.bonding_curve.real_sol_reserve > self.bonding_curve.completion_lamports {
             self.bonding_curve.complete = true;
         }
-
-        self.update_bonding_curve(s_in, t_new)?;
 
         Ok(())
     }

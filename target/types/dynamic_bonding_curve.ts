@@ -770,10 +770,13 @@ export type DynamicBondingCurve = {
           }
         },
         {
-          "name": "admin",
+          "name": "authority",
           "writable": true,
           "signer": true,
-          "address": "ANqg3T5SC4LEf4FZQwxxbrEzDcNv6uCXBbQrxaEBm8qr"
+          "address": "ANqg3T5SC4LEf4FZQwxxbrEzDcNv6uCXBbQrxaEBm8qr",
+          "relations": [
+            "global"
+          ]
         },
         {
           "name": "systemProgram",
