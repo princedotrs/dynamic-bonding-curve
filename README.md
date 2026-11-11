@@ -1,5 +1,7 @@
 # dynamic-bonding-curve: a token-launch bonding curve on Solana, built with Anchor
 
+[![CI](https://github.com/princedotrs/dynamic-bonding-curve/actions/workflows/ci.yml/badge.svg)](https://github.com/princedotrs/dynamic-bonding-curve/actions/workflows/ci.yml)
+
 A Pump.fun-style launch program written in Rust with Anchor. Anyone can create a token that trades against SOL on a constant-product curve backed by virtual reserves. Instead of hand-picking those virtual reserves, the creator says how much SOL they want to raise and how many tokens to sell, and the program works out a curve that hits both targets.
 
 What you'll find here:
