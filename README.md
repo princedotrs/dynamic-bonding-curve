@@ -107,7 +107,7 @@ pub struct Global {
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/prince981620/dynamic-bonding-curve.git
+git clone https://github.com/princedotrs/dynamic-bonding-curve.git
 cd dynamic-bonding-curve
 ```
 
