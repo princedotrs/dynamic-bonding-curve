@@ -1,9 +1,0 @@
-Deploying cluster: https://api.devnet.solana.com
-Upgrade authority: /Users/prince/.config/solana/id.json
-Deploying program "dynamic_bonding_curve"...
-Program path: /Users/prince/Project/prince981620/dynamic-bonding-curve/target/deploy/dynamic_bonding_curve.so...
-Program Id: BnHQoRBC1kedRoiFfrXvxzRDUPM64R7wxaPT2PsDndKw
-
-Signature: Q836ezNwqJxmMJMzbuQjjL3jMGx845VkBev6eCRRvULAXfzSVAyX9XMXiP2AeX3jgbEpPj5frp5fuop1PiPxPSu
-
-Deploy success
